@@ -17,7 +17,7 @@ namespace WordSearch1
             stopWatch.Start();
 
             //Run puzzle code
-            DoIt(new StreamReader(args[0]));
+            DoIt(args[0], args[1],args[2]);
 
             stopWatch.Stop();
             TimeSpan ts = stopWatch.Elapsed;
@@ -29,26 +29,123 @@ namespace WordSearch1
             Console.ReadLine();
         }
 
-        static void DoIt(StreamReader reader){
+        static void DoIt(string inputDataFilePath, string outputFilePath, string intputWordsFilePath){
             //Separate input file into rows
                 //read each row into an array
                     //remove the line break characters
-            string[][] results;
+            List<string>
+                inputData = ExtractData(inputDataFilePath),
+                inputWords = ExtractData(intputWordsFilePath);
 
-            PrepareInputData(reader, out results);
+            FindHorizontal(inputData, inputWords);
+            FindVertical(inputData, inputWords);
+            FindDiagonal(inputData, inputWords);
         }
 
-        static void PrepareInputData(StreamReader reader, out string[][] results)
+        static void FindHorizontal(List<string> inputData, List<string> inputWords)
+        {
+            foreach (string line in inputData)
+            {
+                List<string> foundWords = new List<string>();
+                foreach (string word in inputWords)
+                {
+                    if (line.Contains(word))
+                    {
+
+                        foundWords.Add(word);
+                    }
+                    else
+                    {
+                        char[] reversed = word.ToCharArray();
+                        Array.Reverse(reversed);
+                        if (line.Contains(new String(reversed)))
+                        {
+
+                            foundWords.Add(word);
+                        }
+                    }
+                }
+                foundWords.ForEach(x => inputWords.Remove(x));
+            }
+        }
+
+        static void FindVertical(List<string> inputData, List<string> inputWords)
+        {
+            int rowLength = inputData.FirstOrDefault().Length;
+
+            for (int i = 0; i < rowLength; i++)
+            {
+                string verticalRow = new String(inputData.SelectMany(x => x.Substring(i, 1)).ToArray<char>());
+                List<string> foundWords = new List<string>();
+
+                foreach (string word in inputWords)
+                {
+                    if (verticalRow.Contains(word))
+                    {
+
+                        foundWords.Add(word);
+                    }
+                    else
+                    {
+                        char[] reversed = word.ToCharArray();
+                        Array.Reverse(reversed);
+                        if(verticalRow.Contains(new String(reversed)))
+                        {
+
+                            foundWords.Add(word);
+                        }
+                    }
+                }
+                foundWords.ForEach(x => inputWords.Remove(x));
+            }
+        }
+
+        static void FindDiagonal(List<string> inputData, List<string> inputWords)
+        {
+            int rowLength = inputData.FirstOrDefault().Length;
+
+            for (int i = 0; i < rowLength; i++)
+            {
+                int k = i;
+                string diagonalRow = new String(inputData.SelectMany(x => x.Substring(k++, 1)).ToArray<char>());
+                List<string> foundWords = new List<string>();
+
+                foreach (string word in inputWords)
+                {
+                    if (diagonalRow.Contains(word))
+                    {
+
+                        foundWords.Add(word);
+                    }
+                    else
+                    {
+                        char[] reversed = word.ToCharArray();
+                        Array.Reverse(reversed);
+                        if (diagonalRow.Contains(new String(reversed)))
+                        {
+
+                            foundWords.Add(word);
+                        }
+                    }
+                }
+                foundWords.ForEach(x => inputWords.Remove(x));
+            }
+        }
+
+        static List<string> ExtractData(string filePath)
         {
             List<string> listOfStrings = new List<string>();
 
-            do
-            {         
-                listOfStrings.Add(reader.ReadLine());            
+            using (StreamReader reader = new StreamReader(filePath))
+            {
+                do
+                {
+                    listOfStrings.Add(reader.ReadLine());
+                }
+                while (!reader.EndOfStream);
             }
-            while (!reader.EndOfStream);
 
-            results = null;
+            return listOfStrings;
         }
     }
 }
