@@ -11,7 +11,17 @@ namespace WordSearch1Tests
         #region Fields
 
         private WordSearch1.PuzzleSolver _puzzleSolver;
-        string _word = "SACRAMENTO", _row = "SACRAMENTOTWICV";
+
+        private const string  
+            CAKE = "cake",
+            FORREST_CAKE = "Forrest Cake",
+            AMERICA = "america",
+            FREEDOM = "freedom",
+            PERSPICACITY = "perspicacity",
+            CIRCUMLOCUTION = "circumlocution",
+            BAD_WOLF = "bad wolf";
+
+        string _word, _row;
         List<string> _foundWords;
 
         List<string> _inputData;
@@ -26,18 +36,16 @@ namespace WordSearch1Tests
         {
             _word = "SACRAMENTO";
             _row = "SACRAMENTOTWICV";
-
-            _puzzleSolver = PuzzleSolverObjectMother.GetTestPuzzleSolver();
-
+            
             _inputWords = new List<string>()
             {
                 "cake",
-                "Forrest Cake",
+                "ForrestCake",
                 "america",
                 "freedom",
                 "perspicacity",
                 "circumlocution",
-                "bad wolf"
+                "badwolf"
             };
 
             _inputData = new List<string>()
@@ -49,14 +57,14 @@ namespace WordSearch1Tests
                 "_______________________________k__________________________________________",
                 "______________________________a___________________________________________",
                 "_____________________________c____________________________________________",
-                "____________________________ta_________________________modeerf____________",
+                "____________________________ta_____________________________________modeerf",
                 "___________________________s_k____________________________________________",
                 "__________________________e__e____________________________y_______________",
                 "_________________________r_________________________________t______________",
                 "________________________r___________________________________i_____________",
-                "_______________________r_______circumlocution________________c____________",
+                "circumlocution_________r_____________________________________c____________",
                 "______________________o_______________________________________a___________",
-                "_____________________F_________________________________________c__________",
+                "_____________________f_________________________________________c__________",
                 "________________________________________________________________i_________",
                 "__________________________________a_______________f______________p________",
                 "___________________________________m______________l_______________s_______",
@@ -67,57 +75,47 @@ namespace WordSearch1Tests
                 "________________________________________a_________b_______________________",
             };
 
-            _foundWords = new List<string>();
+            _puzzleSolver = new WordSearch1.PuzzleSolver(_inputData, _inputWords);
         }
 
         #endregion
 
         #region Tests
 
-        #region CheckBiDirectional
+        #region IsWordInRow
 
         [TestMethod]
-        public void CheckBiDirectional_LeftToRightWordExists()
+        public void IsWordInRow_LeftToRightWordExists()
         {
-            _foundWords.AddRange(_puzzleSolver.CheckBiDirectional(_row, _word));
-
-            Assert.IsTrue(_foundWords.Count == 1);
-            Assert.IsTrue(_foundWords.First<string>() == _word);
+            Assert.IsTrue(_puzzleSolver.IsWordInRow(_row, _word));
         }
 
         [TestMethod]
-        public void CheckBiDirectional_RightToLeftWordExists()
+        public void IsWordInRow_RightToLeftWordExists()
         {
             _word = new String(_word.Reverse().ToArray<char>());
 
-            _foundWords.AddRange(_puzzleSolver.CheckBiDirectional(_row, _word));
-
-            Assert.IsTrue(_foundWords.Count == 1);
-            Assert.IsTrue(_foundWords.First<string>() == _word);
+            Assert.IsTrue(_puzzleSolver.IsWordInRow(_row, _word));
         }
 
         [TestMethod]
-        public void CheckBiDirectional_LeftToRightWordNotExists()
+        public void IsWordInRow_LeftToRightWordNotExists()
         {
             _word = "jack";
             _row = "squat";
 
-            _foundWords.AddRange(_puzzleSolver.CheckBiDirectional(_row, _word));
-
-            Assert.IsTrue(!_foundWords.Any());
+            Assert.IsFalse(_puzzleSolver.IsWordInRow(_row, _word));
         }
 
         [TestMethod]
-        public void CheckBiDirectional_RightToLeftWordNotExists()
+        public void IsWordInRow_RightToLeftWordNotExists()
         {
             _word = "jack";
             _row = "squat";
 
             _word = new String(_word.Reverse().ToArray<char>());
 
-            _foundWords.AddRange(_puzzleSolver.CheckBiDirectional(_row, _word));
-
-            Assert.IsTrue(!_foundWords.Any());
+            Assert.IsFalse(_puzzleSolver.IsWordInRow(_row, _word));
         }
 
         #endregion
@@ -127,7 +125,29 @@ namespace WordSearch1Tests
         [TestMethod]
         public void FindHorizontal_WordInRow()
         {
+            _puzzleSolver.FindHorizontal();
 
+            Assert.IsTrue(!_inputWords.Contains(FREEDOM));
+            Assert.IsTrue(!_inputWords.Contains(CIRCUMLOCUTION));
+        }
+
+        [TestMethod]
+        public void FindVertical_WordInRow()
+        {
+            _puzzleSolver.FindVertical();
+
+            Assert.IsTrue(!_inputWords.Contains(CAKE));
+            Assert.IsTrue(!_inputWords.Contains(BAD_WOLF));
+        }
+
+        [TestMethod]
+        public void FindDiagonal_WordInRow()
+        {
+            _puzzleSolver.FindDiagonal();
+
+            Assert.IsTrue(!_inputWords.Contains(FORREST_CAKE));
+            Assert.IsTrue(!_inputWords.Contains(AMERICA));
+            Assert.IsTrue(!_inputWords.Contains(PERSPICACITY));
         }
 
         #endregion

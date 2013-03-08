@@ -6,8 +6,15 @@ using System.Threading.Tasks;
 
 namespace WordSearch1
 {
-    class FoundWord
+    internal class FoundWord
     {
+        FoundWord(string word, Point a, Point b)
+        {
+            Word = word;
+            A = a;
+            B = b;
+        }
+
         string Word { get; set; }
         Point A { get; set; }
         Point B { get; set; }

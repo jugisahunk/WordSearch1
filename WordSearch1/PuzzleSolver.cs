@@ -9,128 +9,144 @@ namespace WordSearch1
 {
     internal class PuzzleSolver
     {
-        internal void DoIt(string inputDataFilePath, string outputFilePath, string intputWordsFilePath)
+        private readonly string _inputRowsPath, _outputFilePath, _inputWordsFilePath;
+        int _rowLength;
+        List<FoundWord> _foundWords;
+
+        List<string> _inputRows, _inputWords;
+
+        internal PuzzleSolver(string inputRowsFilePath, string outputFilePath, string inputWordsFilePath)
         {
-            using (StreamWriter outfile = new StreamWriter(outputFilePath))
+            _foundWords = new List<FoundWord>();
+
+            _inputRowsPath = inputRowsFilePath;
+            _outputFilePath = outputFilePath;
+            _inputWordsFilePath = inputWordsFilePath;
+
+            _inputRows = ExtractData(_inputRowsPath);
+            _inputWords = ExtractData(_inputWordsFilePath);
+
+            _rowLength = _inputRows.FirstOrDefault().Length;
+        }
+
+        internal PuzzleSolver(List<string> inputRows, List<string> inputWords)
+        {
+            _inputRows = inputRows;
+            _inputWords = inputWords;
+
+            _rowLength = _inputRows.FirstOrDefault().Length;
+        }
+
+        internal void DoIt()
+        {
+            if (!_inputRows.Any() || !_inputWords.Any()) return;                
+
+            _inputWords.Sort();
+
+            FindHorizontal();
+            FindVertical();
+            FindDiagonal();
+        }
+
+
+        internal void FindHorizontal()
+        {
+            List<string> foundWords = new List<string>();
+
+            for (int i = 0; i < _inputRows.Count(); i++)
             {
-                List<string>
-                    inputData = ExtractData(inputDataFilePath),
-                    inputWords = ExtractData(intputWordsFilePath);
+                for (int j = 0; j < _inputWords.Count(); j++)
+                {
+                    string row = _inputRows[i], word = _inputWords[j];
+                    if (IsWordInRow(row, word))
+                    {                        
+                        foundWords.Add(word);
+                    }
+                }
+            }
 
-                inputWords.Sort();
+            RemoveFoundWords(foundWords);
+        }
 
-                FindHorizontal(inputData, inputWords);
-                FindVertical(inputData, inputWords);
-                FindDiagonal(inputData, inputWords);
+        internal void FindVertical()
+        {
+            List<string> foundWords = new List<string>();
 
-                outfile.Write("Time elapsed in Milliseconds: {0}");
+            for (int i = 0; i < _rowLength; i++)
+            {
+                string verticalRow = new String(_inputRows.SelectMany(x => x.Substring(i, 1)).ToArray<char>());
+                foundWords.AddRange(_inputWords.Where(word => IsWordInRow(verticalRow,word)));
+
+                RemoveFoundWords(foundWords);
             }
         }
 
-        internal void FindHorizontal(List<string> inputData, List<string> inputWords)
-        {
-            foreach (string line in inputData)
-            {
-                List<string> foundWords = new List<string>();
-
-                inputWords.ForEach(x => foundWords.AddRange(CheckBiDirectional(line, x)));
-
-                foundWords.ForEach(x => inputWords.Remove(x));
-            }
-        }
-
-        internal void FindVertical(List<string> inputData, List<string> inputWords)
-        {
-            int rowLength = inputData.FirstOrDefault().Length;
-
-            for (int i = 0; i < rowLength; i++)
-            {
-                List<string> foundWords = new List<string>();
-
-                inputWords.ForEach(x => foundWords.AddRange(
-                           CheckBiDirectional(
-                               new String(inputData.SelectMany(y => y.Substring(i, 1)).ToArray<char>()),
-                               x)));
-
-                foundWords.ForEach(x => inputWords.Remove(x));
-            }
-        }
-
-        internal void FindDiagonal(List<string> inputData, List<string> inputWords)
-        {
-            int rowLength = inputData.FirstOrDefault().Length;
-
-            for (int i = 0; i < rowLength; i++)
+        internal void FindInLeftRightDiagonal(int startingIndex, int endingIndex){
+            List<string> foundWords = new List<string>();
+            for (int i = startingIndex; i < endingIndex; i++)
             {
                 int k = i;
-                string diagonalRow = new String(inputData.Where(x => k < rowLength).SelectMany(x => x.Substring(k++, 1)).ToArray<char>());
+                string diagonalRow = new String(_inputRows.Where(x => k < endingIndex).SelectMany(x => x.Substring(k++, 1)).ToArray<char>());
 
-                List<string> foundWords = new List<string>();
+                foundWords.AddRange(_inputWords.Where(x => IsWordInRow(diagonalRow, x)));
 
-                inputWords.ForEach(x => foundWords.AddRange(CheckBiDirectional(diagonalRow, x)));
-
-                foundWords.ForEach(x => inputWords.Remove(x));
+                RemoveFoundWords(foundWords);
             }
+        }
 
-            for (int i = rowLength; i > 0; i--)
-            {
-                int k = i - 1;
-                string diagonalRow = new String(inputData.Where(x => k > 0).SelectMany(x => x.Substring(k--, 1)).ToArray<char>());
+        internal void FindInRightLeftDiagonal(int startingIndex, int endingIndex)
+        {
+            List<string> foundWords = new List<string>();
 
-                List<string> foundWords = new List<string>();
-
-                inputWords.ForEach(x => foundWords.AddRange(CheckBiDirectional(diagonalRow, x)));
-
-                foundWords.ForEach(x => inputWords.Remove(x));
-            }
-
-            inputData = inputData.Reverse<string>().ToList<string>();
-
-            for (int i = 0; i < rowLength; i++)
+            for (int i = startingIndex; i >= endingIndex; i--)
             {
                 int k = i;
-                string diagonalRow = new String(inputData.Where(x => k < rowLength).SelectMany(x => x.Substring(k++, 1)).ToArray<char>());
+                string diagonalRow = new String(_inputRows.Where(x => k > endingIndex).SelectMany(x => x.Substring(k--, 1)).ToArray<char>());
 
-                List<string> foundWords = new List<string>();
+                foundWords.AddRange(_inputWords.Where(x => IsWordInRow(diagonalRow, x)));
 
-                inputWords.ForEach(x => foundWords.AddRange(CheckBiDirectional(diagonalRow, x)));
-
-                foundWords.ForEach(x => inputWords.Remove(x));
+                RemoveFoundWords(foundWords);
             }
+        }
 
-            //start at row length -1 because we will have already checked the main diagonal
-            for (int i = rowLength - 1; i > 1; i--)
-            {
-                int k = i - 1;
-                string diagonalRow = new String(inputData.Where(x => k > 0).SelectMany(x => x.Substring(k--, 1)).ToArray<char>());
+        internal void FindDiagonal()
+        {
+            List<string> foundWords = new List<string>();
 
-                List<string> foundWords = new List<string>();
+            //Search Left to Right Diagonal
+            FindInLeftRightDiagonal(0, _rowLength);
 
-                inputWords.ForEach(x => foundWords.AddRange(CheckBiDirectional(diagonalRow, x)));
+            //Search Rigth to Left Diagonal
+            FindInRightLeftDiagonal(_rowLength - 1, 0);
 
-                foundWords.ForEach(x => inputWords.Remove(x));
-            }
+            _inputRows = _inputRows.Reverse<string>().ToList<string>();
+
+            FindInLeftRightDiagonal(0, _rowLength - 1);
+
+            FindInRightLeftDiagonal(_rowLength - 1, 1);
         }
 
         #region Helper Functions
 
-        internal  List<string> CheckBiDirectional(string row, string word)
+        internal bool IsWordInRow(string row, string word)
         {
-            List<string> foundWords = new List<string>();
-
             if (row.Contains(word))
-                foundWords.Add(word);
+                return true;
             else
             {
                 char[] reversed = word.ToCharArray();
                 Array.Reverse(reversed);
                 if (row.Contains(new String(reversed)))
-                    foundWords.Add(word);
+                    return true;
             }
 
-            return foundWords;
+            return false;
         }
 
+        private void RemoveFoundWords(List<string> foundWords)
+        {
+            foundWords.ForEach(x => _inputWords.Remove(x));
+        }
 
         internal List<string> ExtractData(string filePath)
         {
@@ -140,7 +156,7 @@ namespace WordSearch1
             {
                 do
                 {
-                    listOfStrings.Add(reader.ReadLine());
+                    listOfStrings.Add(reader.ReadLine().ToLower());
                 }
                 while (!reader.EndOfStream);
             }

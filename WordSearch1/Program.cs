@@ -12,10 +12,17 @@ namespace WordSearch1
     {
         static void Main(string[] args)
         {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
             //Run puzzle code
-            PuzzleSolver puzzleSolver = new PuzzleSolver();
+            PuzzleSolver puzzleSolver = new PuzzleSolver(args[0], args[1], args[2]);
 
-            puzzleSolver.DoIt(args[0], args[1], args[2]);
+            puzzleSolver.DoIt();
+            stopWatch.Stop();
+
+            Console.WriteLine("Time elapsed: " + stopWatch.ElapsedMilliseconds);
+
+            Console.ReadLine();
         }
 
 
